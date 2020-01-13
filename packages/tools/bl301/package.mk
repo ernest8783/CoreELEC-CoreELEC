@@ -2,14 +2,18 @@
 # Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="bl301"
-PKG_VERSION="a824623258d3f92b89303f6ae4e4d1047022c032"
-PKG_SHA256="b451dd91649a6e6ecc689bc42e563491be39d292fd383bf0aba988499c30d6e8"
+PKG_VERSION="d7d9fb989cd9b2db5234d4cdaf75677b4720c66b"
+PKG_SHA256="aed52f7bfb7b8e15dc40546b7148b236473d7695a63b06d1da24b6b5eecd34f3"
 PKG_LICENSE="GPL"
 PKG_SITE="https://coreelec.org"
 PKG_URL="https://github.com/CoreELEC/bl301/archive/$PKG_VERSION.tar.gz"
 PKG_DEPENDS_TARGET="toolchain gcc-linaro-aarch64-elf:host gcc-linaro-arm-eabi:host"
 PKG_LONGDESC="Das U-Boot is a cross-platform bootloader for embedded systems."
 PKG_TOOLCHAIN="manual"
+
+pre_make_target() {
+  sed -i "s|arm-none-eabi-|arm-eabi-|g" $PKG_BUILD/Makefile $PKG_BUILD/arch/arm/cpu/armv8/*/firmware/scp_task/Makefile 2>/dev/null || true
+}
 
 make_target() {
   [ "${BUILD_WITH_DEBUG}" = "yes" ] && PKG_DEBUG=1 || PKG_DEBUG=0
@@ -25,6 +29,7 @@ make_target() {
       DEBUG=${PKG_DEBUG} CROSS_COMPILE=aarch64-elf- ARCH=arm CFLAGS="" LDFLAGS="" make HOSTCC="${HOST_CC}" HOSTSTRIP="true" bl301.bin
       mv ${PKG_BUILD}/build/scp_task/bl301.bin ${PKG_BUILD}/build/${PKG_BL301_SUBDEVICE}_bl301.bin
       echo "moved to: " ${PKG_BUILD}/build/${PKG_BL301_SUBDEVICE}_bl301.bin
+      rm -rf ${PKG_BUILD}/build/scp_task
     fi
   done
 }
